@@ -88,7 +88,7 @@ def start(message):
     bot.send_message(message.chat.id, 
                      "👋 Assalomu alaykum!\n\n" 
                      "Bu bot endi veb-sayt bilan birga ishlaydi. "
-                     "Musiqa qidirish va tinglash uchun, iltimos, veb-saytimizga tashrif buyuring: [HAVOLA]",
+                     "Musiqa qidirish va tinglash uchun, iltimos, veb-saytimizga tashrif buyuring: https://kino-app-d2pl.onrender.com/",
                      disable_web_page_preview=True) # Replace [HAVOLA] with your actual website link
 
 # --- Main Execution ---
