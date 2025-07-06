@@ -23,12 +23,65 @@ app = Flask(__name__, static_folder='.', static_url_path='')
 CORS(app)  # Allow cross-origin requests for our API
 
 # --- Telegram Bot Configuration ---
-TOKEN = "7824325370:AAGK1GpgoUo_e2rqfE0H2P-AvY2d0tBZgEk"
+TOKEN = "7824325370:AAEbGsu2AGhlbbGpn4NIk06XJ-vRJAoTEpI"
 DOWNLOAD_DIR = "downloads"
 OWNER_ID = 7157577190
 
 bot = telebot.TeleBot(TOKEN, parse_mode='HTML')
 Path(DOWNLOAD_DIR).mkdir(exist_ok=True)
+
+# --- Hardcoded Movie Database (API-siz yechim) ---
+LOCAL_MOVIES_DB = [
+    {
+        "title": "Shum Bola",
+        "release_date": "1977-01-01",
+        "vote_average": 8.5,
+        "poster_path": "/z3t5mO3IKM5M2y2G6wzYQz4A4Q4.jpg"
+    },
+    {
+        "title": "Baron",
+        "release_date": "2016-01-15",
+        "vote_average": 7.8,
+        "poster_path": "/lAmX1tV3iVfA1i1lS3C2gq9sT5y.jpg"
+    },
+    {
+        "title": "Avatar: The Way of Water",
+        "release_date": "2022-12-14",
+        "vote_average": 7.7,
+        "poster_path": "/t6HIqrRAclMCA60NsSmeqe9RmNV.jpg"
+    },
+    {
+        "title": "Scorpion",
+        "release_date": "2018-12-01",
+        "vote_average": 6.9,
+        "poster_path": "/5V2885wX2O50Yp2g6b7a5h5g.jpg"
+    },
+    {
+        "title": "The Avengers",
+        "release_date": "2012-04-25",
+        "vote_average": 7.7,
+        "poster_path": "/RYMX2wcKCBAr24UyPD7xwmjaTn.jpg"
+    }
+]
+
+# --- Web API Endpoint for Movie Search (Local Version) ---
+@app.route('/api/search_movie')
+def api_search_movie():
+    query = request.args.get('q', '').lower()
+    logger.info(f"Lokal kino qidiruvi: {query}")
+
+    if not query:
+        # Agar so'rov bo'sh bo'lsa, barcha kinolarni qaytarish
+        return jsonify({"data": LOCAL_MOVIES_DB})
+
+    # Sarlavhadan qidirish
+    results = [
+        movie for movie in LOCAL_MOVIES_DB
+        if query in movie['title'].lower()
+    ]
+    
+    return jsonify({"data": results})
+
 
 # --- Web API Endpoint for Music Search ---
 @app.route('/api/search')
@@ -100,10 +153,10 @@ def run_bot():
         logger.critical(f"Bot polling failed: {e}", exc_info=True)
 
 if __name__ == '__main__':
-    # Run the bot in a separate thread
-    bot_thread = threading.Thread(target=run_bot)
-    bot_thread.daemon = True
-    bot_thread.start()
+    # Bot is temporarily disabled to resolve conflict
+    # bot_thread = threading.Thread(target=run_bot)
+    # bot_thread.daemon = True
+    # bot_thread.start()
 
     # Run the Flask app
     # Use port 8000 as it's common for development

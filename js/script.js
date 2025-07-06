@@ -1,4 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // Element references
+    const musicBtn = document.getElementById('music-btn');
+    const movieBtn = document.getElementById('movie-btn');
     const searchButton = document.getElementById('search-button');
     const searchInput = document.getElementById('search-input');
     const resultsContainer = document.getElementById('results-container');
@@ -8,54 +11,73 @@ document.addEventListener('DOMContentLoaded', () => {
     const nowPlayingInfo = document.getElementById('now-playing-info');
     const initialMessage = document.getElementById('initial-message');
 
-    let isSearching = false;
+    // State
+    let searchType = 'music'; // 'music' or 'movie'
 
-    const showLoader = () => {
+    // --- Event Listeners ---
+
+    // Search type selection
+    musicBtn.addEventListener('click', () => {
+        searchType = 'music';
+        musicBtn.classList.add('active');
+        movieBtn.classList.remove('active');
+        searchInput.placeholder = "Qo'shiq yoki ijrochini qidiring...";
+        resultsContainer.innerHTML = ''; // Clear results
+        if(initialMessage) initialMessage.style.display = 'block';
+    });
+
+    movieBtn.addEventListener('click', () => {
+        searchType = 'movie';
+        movieBtn.classList.add('active');
+        musicBtn.classList.remove('active');
+        searchInput.placeholder = 'Film nomini qidiring...';
+        resultsContainer.innerHTML = ''; // Clear results
+        if(initialMessage) initialMessage.style.display = 'block';
+        playerBar.classList.remove('visible'); // Hide music player
+    });
+
+    // Search execution
+    searchButton.addEventListener('click', () => performSearch());
+    searchInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            performSearch();
+        }
+    });
+
+    // --- Core Functions ---
+
+    const performSearch = async () => {
+        const query = searchInput.value.trim();
+        if (!query) {
+            searchInput.focus();
+            return;
+        }
+
         resultsContainer.innerHTML = '<div class="loader"></div>';
         if(initialMessage) initialMessage.style.display = 'none';
-    };
 
-    const hideLoader = () => {
-        const loader = resultsContainer.querySelector('.loader');
-        if (loader) {
-            loader.remove();
-        }
-    };
-
-    const searchMusic = async (query) => {
-        if (isSearching) return;
-        isSearching = true;
-        searchButton.disabled = true;
-        searchButton.textContent = 'Qidirilmoqda...';
-        showLoader();
+        const endpoint = searchType === 'music' ? '/api/search' : '/api/search_movie';
+        const apiUrl = `${endpoint}?q=${encodeURIComponent(query)}`;
 
         try {
-            const apiUrl = `/api/search?q=${encodeURIComponent(query)}`;
-            
             const response = await fetch(apiUrl);
             if (!response.ok) {
-                throw new Error(`Network response was not ok: ${response.statusText}`);
+                throw new Error(`Server xatosi: ${response.status}`);
             }
-
-            const data = await response.json();
-            if (data.error) {
-                throw new Error(`API error: ${data.error}`);
-            }
+            const results = await response.json();
             
-            displayResults(data.data || []);
-
+            if (searchType === 'music') {
+                displayMusicResults(results.data || []);
+            } else {
+                displayMovieResults(results.data || []);
+            }
         } catch (error) {
-            resultsContainer.innerHTML = `<p class="error-message">Qidiruvda xatolik yuz berdi. Server ishlayotganiga ishonch hosil qiling yoki keyinroq qayta urinib ko'ring.</p>`;
-            console.error('Search error:', error);
-        } finally {
-            isSearching = false;
-            searchButton.disabled = false;
-            searchButton.textContent = 'Qidirish';
+            console.error('Qidiruvda xato:', error);
+            resultsContainer.innerHTML = '<p class="error">Natijalarni yuklashda xatolik yuz berdi.</p>';
         }
     };
 
-    const displayResults = (tracks) => {
-        hideLoader();
+    const displayMusicResults = (tracks) => {
         resultsContainer.innerHTML = '';
         if (tracks.length === 0) {
             resultsContainer.innerHTML = '<p>Hech narsa topilmadi. Boshqa so\'rovni sinab ko\'ring.</p>';
@@ -67,7 +89,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const trackElement = document.createElement('div');
             trackElement.classList.add('track');
-            trackElement.dataset.previewUrl = track.preview;
             
             const imageUrl = track.album.cover_medium || 'https://via.placeholder.com/250';
 
@@ -91,33 +112,41 @@ document.addEventListener('DOMContentLoaded', () => {
                     playerBar.classList.add('visible');
                     nowPlayingCover.src = imageUrl;
                     nowPlayingInfo.innerHTML = `<h4>${track.title}</h4><p>${track.artist.name}</p>`;
-                } else {
-                    // Maybe show a small, non-disruptive notification
-                    trackElement.classList.add('no-preview');
-                    setTimeout(() => trackElement.classList.remove('no-preview'), 2000);
                 }
             });
             resultsContainer.appendChild(trackElement);
         });
     };
 
-    const handleSearch = () => {
-        const query = searchInput.value.trim();
-        if (query) {
-            searchMusic(query);
-        } else {
-            // Maybe show a small notification instead of an alert
-            searchInput.focus();
-            searchInput.placeholder = "Iltimos, qidirish uchun biror nima yozing.";
-        }
-    };
+    const displayMovieResults = (movies) => {
+        resultsContainer.innerHTML = '';
+        playerBar.classList.remove('visible'); // Hide music player
 
-    searchButton.addEventListener('click', handleSearch);
-    searchInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            handleSearch();
+        if (!movies || movies.length === 0) {
+            resultsContainer.innerHTML = '<p>Hech narsa topilmadi. Boshqa so\'rovni sinab ko\'ring.</p>';
+            return;
         }
-    });
+
+        movies.forEach(movie => {
+            if (!movie) return;
+
+            const movieElement = document.createElement('div');
+            movieElement.classList.add('track'); // Reuse styles
+
+            const imageUrl = movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : 'https://via.placeholder.com/250x375.png?text=Rasm+yo\'q';
+
+            movieElement.innerHTML = `
+                <div class="track-image-container">
+                    <img src="${imageUrl}" alt="${movie.title}" loading="lazy">
+                </div>
+                <div class="track-info">
+                    <h3>${movie.title}</h3>
+                    <p>${movie.release_date ? movie.release_date.split('-')[0] : 'Noma\'lum'} | ⭐ ${movie.vote_average.toFixed(1)}</p>
+                </div>
+            `;
+            resultsContainer.appendChild(movieElement);
+        });
+    };
 
     // Set initial message
     if(initialMessage) {

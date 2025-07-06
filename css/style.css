@@ -44,6 +44,34 @@ h1 {
     letter-spacing: 1px;
 }
 
+/* Search Type Toggles */
+.search-type-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.search-type-btn {
+    background-color: #333;
+    color: #fff;
+    border: 1px solid #555;
+    padding: 10px 20px;
+    margin: 0 5px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.search-type-btn:hover {
+    background-color: #444;
+}
+
+.search-type-btn.active {
+    background-color: #1DB954; /* Spotify Green */
+    color: #fff;
+    border-color: #1DB954;
+}
+
 main {
     flex-grow: 1;
     padding: 2rem;

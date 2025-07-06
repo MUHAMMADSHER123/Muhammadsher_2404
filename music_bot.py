@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 # --- BOT TOKEN --- 
 # Iltimos, bu yerga BotFather'dan olgan tokeningizni qo'ying
-TELEGRAM_BOT_TOKEN = "7824325370:AAGK1GpgoUo_e2rqfE0H2P-AvY2d0tBZgEk"
+TELEGRAM_BOT_TOKEN = "7824325370:AAEbGsu2AGhlbbGpn4NIk06XJ-vRJAoTEpI"
 
 def search_deezer(query: str) -> list:
     """Berilgan so'rov bo'yicha Deezer'dan qidiradi va treklar ro'yxatini qaytaradi."""
