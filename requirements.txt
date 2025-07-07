@@ -1,5 +1,1 @@
-Flask
-pyTelegramBotAPI
-yt-dlp
-Flask-Cors
-gunicorn
+
